@@ -1,133 +1,82 @@
-let desktopScreen=document.querySelector('.desktop')
-let desktopMenu=document.querySelector('.desktop-menu')
+// --- Selectors ---
+const desktopScreen = document.querySelector('.desktop');
+const desktopMenu = document.querySelector('.desktop-menu');
+const desktopIconMenu = document.querySelector('.desktop-icon-menu');
+const desktopIconBoxes = document.querySelectorAll('.icon-box');
+const startButton = document.querySelector('#start-button');
+const startButtonMenu = document.querySelector('.start-button-menu');
 
-let desktopIconMenu=document.querySelector('.desktop-icon-menu')
-let desktopIconBox=document.querySelectorAll('.icon-box')
-let desktopIconBoxImg=document.querySelectorAll('.icon-box img')
+// --- Core Logic ---
 
-let startButton=document.querySelector('#start-button')
-let startButtonimg=document.querySelector('#start-button img')
-let startButtonMenu=document.querySelector('.start-button-menu')
-console.log(startButton)
-console.log(startButtonMenu)
+//  Unified Close Function
+function closeAllMenus() {
+    startButtonMenu.classList.remove('active');
+    desktopMenu.style.display = 'none';
+    desktopIconMenu.style.display = 'none';
+}
 
-startButton.addEventListener('click',function(element){
-   element.preventDefault()
-    element.stopPropagation(); 
-   console.log('hello')
-     startButtonMenu.style.bottom='68px'
-     startButtonMenu.style.left='230px'
-     startButtonMenu.classList.toggle('active');
-    //  startButtonMenu.style.display='none'
-     desktopMenu.style.display='none'
-    // desktopIconMenu.style.display='none'
-      
+//  Position Helper for menu positions
+function positionMenu(element, event) {
     
-         
-         
+    element.style.display = 'flex';
+    let x = event.clientX;
+    let y = event.clientY;
 
-})
+    const rect = element.getBoundingClientRect();
+    console.log(rect)
+    const viewportWidth = window.innerWidth;
+    console.log(viewportWidth)
+    const viewportHeight = window.innerHeight;
+    console.log(x)
 
+    if (x + rect.width > viewportWidth) x = viewportWidth - rect.width;
+    if (y + rect.height > viewportHeight) y = viewportHeight - rect.height;
 
+    element.style.left = `${x}px`;
+    element.style.top = `${y}px`;
+}
 
-function handleOutsideClick(event) {
-    const isOpen = startButtonMenu.classList.contains('active');
-    const clickedInsideMenu = startButtonMenu.contains(event.target);
-    const clickedButton = startButton.contains(event.target);
+// --- Event Listeners ---
 
-    if (isOpen && !clickedButton && !clickedInsideMenu) {
-        startButtonMenu.classList.remove('active');
+// Start Button
+startButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isActive = startButtonMenu.classList.contains('active');
+    closeAllMenus();
+    if (!isActive) {
+        startButtonMenu.style.bottom = '68px';
+        startButtonMenu.style.left = '230px';
+        startButtonMenu.classList.add('active');
     }
-}
-
-window.addEventListener('click', function(event) {
-    handleOutsideClick(event);
 });
 
-
-window.addEventListener('contextmenu', function(event) {
-    handleOutsideClick(event);
+// Context Menus
+desktopIconBoxes.forEach(box => {
+    box.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeAllMenus();
+        positionMenu(desktopIconMenu, e);
+    });
 });
 
+desktopScreen.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    closeAllMenus();
+    positionMenu(desktopMenu, e);
+});
+
+// Click anywhere else to close
+window.addEventListener('click', closeAllMenus);
 
 
-
-
-
-
-
-desktopIconBox.forEach(function(event){
-event.addEventListener('contextmenu',function(element){
-     element.preventDefault()
-     element.stopPropagation()
-    console.log(element)
-     desktopIconMenu.style.top=element.clientY+'px'
-     desktopIconMenu.style.left=element.clientX+'px'
-      desktopIconMenu.style.display='flex'
-      desktopMenu.style.display='none'
-        startButtonMenu.classList.toggle('active')
-      desktopIconMenu.style.zIndex ="20" 
-      
-    const desktopIconMenuWidth = desktopIconMenu.offsetWidth;
-const desktopIconMenuHeight = desktopIconMenu.offsetHeight;
-const viewportWidth = window.innerWidth;
-const viewportHeight = window.innerHeight;
-console.log(desktopIconMenuWidth)
-console.log(desktopIconMenuHeight)
-
-    // adjust horizontal position
-if(element.clientX + desktopIconMenuWidth > viewportWidth){
-    desktopIconMenu.style.left = (viewportWidth - desktopIconMenuWidth) + "px";
-}
-
-// adjust vertical position
-if(element.clientY + desktopIconMenuHeight > viewportHeight){
-    desktopIconMenu.style.top = (viewportHeight - desktopIconMenuHeight) + "px";
-}
-
-
-
-
-    
-})
-})
-
-
-desktopScreen.addEventListener('contextmenu',function(event){
-    event.preventDefault()
-    desktopMenu.style.top=event.clientY+'px'
-    desktopMenu.style.left=event.clientX+'px'
-    desktopMenu.style.display='flex'
-    desktopIconMenu.style.display='none'
-    desktopIconMenu.style.zIndex ="1"
-    //    startButtonMenu.style.vi='none'
-
-    const desktopMenuWidth = desktopMenu.offsetWidth;
-const desktopMenuHeight = desktopMenu.offsetHeight;
-const viewportWidth = window.innerWidth;
-const viewportHeight = window.innerHeight;
-
-    // adjust horizontal position
-if(event.clientX + desktopMenuWidth > viewportWidth){
-    desktopMenu.style.left = (viewportWidth - desktopMenuWidth) + "px";
-}
-
-// adjust vertical position
-if(event.clientY + desktopMenuHeight > viewportHeight){
-    desktopMenu.style.top = (viewportHeight - desktopMenuHeight) + "px";
-}
-
-})
-
-
-
-desktopScreen.addEventListener('click',function(){
-    desktopMenu.style.display='none'
-      desktopIconMenu.style.display='none'  
-           
-
-
-})
-
-
-
+[desktopMenu, desktopIconMenu, startButtonMenu].forEach(menu => {
+    menu.addEventListener('click', (e) => {
+        // Only close if they clicked an actual item
+        // Ensure your items inside menus have a class like 'menu-item'
+        if (e.target.closest('li, button, .menu-item, img')) {
+            closeAllMenus();
+        }
+        e.stopPropagation(); // Prevents the window click from firing
+    });
+});
